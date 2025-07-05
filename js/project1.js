@@ -17,13 +17,12 @@ function elegirPalabra(lista) {
 // Función para mostrar la palabra con letras adivinadas y guiones
 function mostrarPalabra(palabra, letras) {
   let resultado = "";
-  for (let i = 0; i < palabra.length; i++) {
-    if (letras.includes(palabra[i])) {
-      resultado += palabra[i];
+  for (const letra of palabra) {
+    if (letras.includes(letra)) {
+      resultado += letra;
     } else {
-      resultado += "__"+" "+" ";
+      resultado += "__" + " ";
     }
-    
   }
   console.log(resultado + "funcion de mostrar palabra"); //borrar luego
   return resultado;
