@@ -1,4 +1,4 @@
-
+// Array de objetos, se me ocurrio darle un valor como la pista de la palabra, para poder crear un array de objetos
 const palabras = [
   { texto: "cocacola", pista: "Bebida gaseosa" },
   { texto: "fernet", pista: "Se mezcla con coca" },
@@ -11,48 +11,33 @@ let pistaActual = "";
 let letrasAdivinadas = [];
 let intentosRestantes = 10;
 
-
-let historialGuardado = localStorage.getItem("historial");
-let historial = [];
-if (historialGuardado) {
-  historial = JSON.parse(historialGuardado);
-}
-
 const descripcion = document.getElementById("descripcion");
 const palabraContenedor = document.getElementById("palabra");
 const teclado = document.getElementById("teclado");
 const mensaje = document.getElementById("mensaje");
 const intentosTexto = document.getElementById("intentos");
 const botonReiniciar = document.getElementById("reiniciar");
-const historialContenedor = document.getElementById("historial");
 
-
-const botonBorrarHistorial = document.createElement("button");
-botonBorrarHistorial.textContent = "Borrar historial";
-botonBorrarHistorial.addEventListener("click", () => {
-  localStorage.removeItem("historial");
-  historial = [];
-  mostrarHistorial();
-});
-historialContenedor.parentElement?.appendChild(botonBorrarHistorial); 
-
+// Elegir palabra y pista al azar
 function elegirPalabra(lista) {
   const indice = Math.floor(Math.random() * lista.length);
   return lista[indice];
 }
 
+// Mostrar palabra con guiones o letras descubiertas
 function mostrarPalabra(palabra, letras) {
   let resultado = "";
   for (const letra of palabra) {
     if (letras.includes(letra)) {
       resultado += letra + " ";
     } else {
-      resultado += "_ ";
+      resultado += "_";
     }
   }
   return resultado;
 }
 
+// Crear teclado dinámico
 function crearTeclado() {
   const abecedario = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ";
   teclado.innerHTML = "";
@@ -64,16 +49,21 @@ function crearTeclado() {
   });
 }
 
+// Manejar intento del jugador
 function manejarIntento(letra) {
   if (letrasAdivinadas.includes(letra) || intentosRestantes <= 0) return;
+
   letrasAdivinadas.push(letra);
   const acierto = palabraSecreta.includes(letra);
+
   palabraContenedor.textContent = mostrarPalabra(palabraSecreta, letrasAdivinadas);
+
   if (!acierto) intentosRestantes--;
-  guardarEstado();
+
   actualizarEstadoJuego();
 }
 
+// Actualizar estado del juego (ganó, perdió o sigue)
 function actualizarEstadoJuego() {
   let gano = true;
 
@@ -85,76 +75,46 @@ function actualizarEstadoJuego() {
   }
 
   const perdio = intentosRestantes <= 0;
+
   intentosTexto.textContent = `Intentos restantes: ${intentosRestantes}`;
 
   if (gano) {
-    new Audio('js/audios/winner.mp3').play();
+    new Audio('js/audios/winner.mp3').play(); //SI BIEN NO LO VIMOS EN CLASE, LE QUICE AGREGAR SONIDO CUANDO GANA O PIERDE, INVESTIGANDO, DESCRGUE 2 ARCHIVOS MP3 Y LOS HICE FUNCIONAR CON EL new audio
     mensaje.textContent = `Crack ¡Ganaste! La palabra era "${palabraSecreta}".`;
-    historial.push(palabraSecreta);
-    localStorage.setItem("historial", JSON.stringify(historial)); 
-    mostrarHistorial();
     desactivarTeclado();
-    limpiarEstado();
   } else if (perdio) {
     new Audio('js/audios/derrota.mp3').play();
     mensaje.textContent = `x.x ¡Perdiste! La palabra era "${palabraSecreta}".`;
     palabraContenedor.textContent = palabraSecreta.split("").join(" ");
     desactivarTeclado();
-    limpiarEstado();
   } else {
     mensaje.textContent = "";
   }
 }
 
+// QUERIA DESACTIVAR LOS BOTONES DEL TECLADO UNA VEZ FINALICE EL JUEGO, BUSQUE INFORMACION ADICIONAL PARA PODER HACERLO
 function desactivarTeclado() {
   teclado.querySelectorAll("button").forEach(btn => btn.disabled = true);
 }
 
+// Reinicia el juego completo
 function iniciarJuego() {
-  const estadoGuardado = JSON.parse(localStorage.getItem("estadoJuego"));
+  const seleccion = elegirPalabra(palabras);
+  palabraSecreta = seleccion.texto;
+  pistaActual = seleccion.pista;
 
-  if (estadoGuardado) {
-    palabraSecreta = estadoGuardado.palabraSecreta;
-    pistaActual = estadoGuardado.pistaActual;
-    letrasAdivinadas = estadoGuardado.letrasAdivinadas;
-    intentosRestantes = estadoGuardado.intentosRestantes;
-  } else {
-    const seleccion = elegirPalabra(palabras);
-    palabraSecreta = seleccion.texto;
-    pistaActual = seleccion.pista;
-    letrasAdivinadas = [];
-    intentosRestantes = 10;
-    guardarEstado();
-  }
+  letrasAdivinadas = [];
+  intentosRestantes = 10;
 
   descripcion.textContent = `Pista: ${pistaActual} | La palabra tiene ${palabraSecreta.length} letras.`;
   palabraContenedor.textContent = mostrarPalabra(palabraSecreta, letrasAdivinadas);
   mensaje.textContent = "";
   intentosTexto.textContent = `Intentos restantes: ${intentosRestantes}`;
   crearTeclado();
-  mostrarHistorial();
 }
 
-function guardarEstado() {
-  localStorage.setItem("estadoJuego", JSON.stringify({ 
-    palabraSecreta,
-    pistaActual,
-    letrasAdivinadas,
-    intentosRestantes
-  }));
-}
+// Evento para botón de reinicio
+botonReiniciar.addEventListener("click", iniciarJuego);
 
-function limpiarEstado() {
-  localStorage.removeItem("estadoJuego");
-}
-
-function mostrarHistorial() {
-  historialContenedor.innerHTML = `<h4>Palabras adivinadas:</h4><ul>${historial.map(p => `<li>${p}</li>`).join("")}</ul>`;
-}
-
-botonReiniciar.addEventListener("click", () => {
-  limpiarEstado();
-  iniciarJuego();
-});
-
+// Iniciar juego al cargar
 iniciarJuego();
